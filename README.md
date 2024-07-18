@@ -13,7 +13,7 @@ The dataset includes information such as age, workclass, education, marital stat
 |  4 |    28 | Private          |   338409 | Bachelors   |              13 | Married-civ-spouse | Prof-specialty    | Wife           | Black  | Female |              0 |              0 |               40 | Cuba             | <=50K    |
 
 # Analysis Questions
-You must use Pandas to answer the following questions:
+I used Pandas to answer the following questions:
 
 1. How many people of each race are represented in this dataset? This should be a Pandas series with race names as the index labels. (race column)
 2. What is the average age of men?
@@ -28,8 +28,8 @@ You must use Pandas to answer the following questions:
 # Round all decimals to the nearest tenth.
 
 # Development
-* Write your code in demographic_data_analyzer.py.
-* For development, you can use main.py to test your code.
+* The code is in demographic_data_analyzer.py.
+* For development, use main.py to test the code.
 # Testing
 * The unit tests for this project are in test_module.py.
 * The tests from test_module.py are imported into main.py for convenience.
