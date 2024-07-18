@@ -1,101 +1,56 @@
 import pandas as pd
 import numpy as np
 
+def clean_data(df):
+    """
+    Args:
+      df: DataFrame to clean
 
-def calculate_demographic_data(print_data=True):
-    # Read data from file
-    df = pd.read_csv("adult.data.csv")
-
-    # print(df.head())
-
-    # cleaning data
-    # print(df.info())
-    # print(df.isnull().sum())
+    Returns:
+      clean dataframe
+    """
     df = df.dropna()
-    # print("duplicated rows:", df.duplicated().sum())
+    return df
+def calculate_demographic_data(df, print_data=True):
+    """
+    Args:
+      df: DataFrame to calculate demographic data
+      print_data: Whether to print the data
 
+    Returns:
+      data: String with demographic data
+    """
+    
     # How many of each race are represented in this dataset? This should be a Pandas series with race names as the index labels.
-
     race_count = df["race"].value_counts()
 
     # What is the average age of men?
-
     average_age_men = round(df[(df["sex"] == "Male")]["age"].mean(), 1)
 
     # What is the percentage of people who have a Bachelor's degree?
-    percentage_bachelors = round(
-        (
-            (df[df["education"] == "Bachelors"].value_counts().sum())
-            * 100
-            / (df["education"].value_counts().sum())
-        ),
-        1,
-    )
+    total_bachelors = df[df["education"] == "Bachelors"].value_counts().sum()
+    total_people = df["education"].value_counts().sum()
+    
+    percentage_bachelors = round(total_bachelors * 100 / total_people, 1)
 
     # What percentage of people with advanced education (`Bachelors`, `Masters`, or `Doctorate`) make more than 50K?
-    higher_education_rich = round(
-        (
-            (
-                df[  # people with advanced education and >50K salary
-                    (
-                        (df["education"] == "Bachelors")
-                        | (df["education"] == "Masters")
-                        | (df["education"] == "Doctorate")
-                    )
-                    & (df["salary"] == ">50K")
-                ]
-                .value_counts()
-                .sum()
-            )
-            * 100
-            / (
-                df[  # people with advanced education
-                    (
-                        (df["education"] == "Bachelors")
-                        | (df["education"] == "Masters")
-                        | (df["education"] == "Doctorate")
-                    )
-                    & (df["salary"])
-                ]
-                .value_counts()
-                .sum()
-            )
-        ),
-        1,
-    )
-
+    
     # What percentage of people without advanced education make more than 50K?
-    # with and without `Bachelors`, `Masters`, or `Doctorate`
-    lower_education_rich = round(
-        (
-            (
-                df[  # people without advanced education and make >50K salary
+    higher_education = df[  
                     (
-                        (df["education"] != "Bachelors")
-                        & (df["education"] != "Masters")
-                        & (df["education"] != "Doctorate")
+                        (df["education"] == "Bachelors")
+                        | (df["education"] == "Masters")
+                        | (df["education"] == "Doctorate")
                     )
-                    & (df["salary"] == ">50K")
-                ]
-                .value_counts()
-                .sum()
-            )
-            * 100
-            / (
-                df[  # people without advanced education and not making >50K salary
-                    (
-                        (df["education"] != "Bachelors")
-                        & (df["education"] != "Masters")
-                        & (df["education"] != "Doctorate")
-                    )
-                    & (df["salary"] != "")
-                ]
-                .value_counts()
-                .sum()
-            )
-        ),
-        1,
-    )
+                ].value_counts().sum()
+
+    lower_education = df[~df["education"].isin(["Bachelors", "Masters", "Doctorate"])]
+    
+    higher_education_and_salary = higher_education& (df["salary"] == ">50K").value_counts().sum()
+    lower_education_and_salary = lower_education.loc[lower_education['salary'] == '>50K', 'salary'].count()
+    
+
+    higher_education_salary_percentage = round(((higher_education_and_salary) * 100 / (higher_education)),1,)
 
     # What is the minimum number of hours a person works per week (hours-per-week feature)?
     min_work_hours = min(df["hours-per-week"])
@@ -116,16 +71,10 @@ def calculate_demographic_data(print_data=True):
     )
 
     # What country has the highest percentage of people that earn >50K?
-
-    highest_earning_country = pd.Series(
-        round(
-            (df[df["salary"] == ">50K"]["native-country"].value_counts())
-            * 100
-            / (df[df["salary"] != ""]["native-country"].value_counts()),
-            1,
-        )
-    ).idxmax()
-
+    highest_earning_country = (
+        df[df["salary"] == ">50K"]["native-country"].value_counts().idxmax()
+    )
+    
     highest_earning_country_percentage = max(
         round(
             (df[df["salary"] == ">50K"]["native-country"].value_counts())
@@ -149,16 +98,16 @@ def calculate_demographic_data(print_data=True):
         print("Average age of men:", average_age_men)
         print(f"Percentage with Bachelors degrees: {percentage_bachelors}%")
         print(
-            f"Percentage with higher education that earn >50K: {higher_education_rich}%"
+            f"Percentage with higher education that earn >50K: {higher_education_and_salary}%"
         )
         print(
-            f"Percentage without higher education that earn >50K: {lower_education_rich}%"
+            f"Percentage without higher education that earn >50K: {lower_education_and_salary}%"
         )
         print(f"Min work time: {min_work_hours} hours/week")
         print(
             f"Percentage of rich among those who work fewest hours: {rich_percentage}%"
         )
-        print("Country with highest percentage of rich:", highest_earning_country)
+        print("Country with highest percentage of rich:", higher_education_and_salary)
         print(
             f"Highest percentage of rich people in country: {highest_earning_country_percentage}%"
         )
@@ -168,8 +117,8 @@ def calculate_demographic_data(print_data=True):
         "race_count": race_count,
         "average_age_men": average_age_men,
         "percentage_bachelors": percentage_bachelors,
-        "higher_education_rich": higher_education_rich,
-        "lower_education_rich": lower_education_rich,
+        "higher_education_rich": higher_education_and_salary,
+        "lower_education_rich": lower_education_and_salary,
         "min_work_hours": min_work_hours,
         "rich_percentage": rich_percentage,
         "highest_earning_country": highest_earning_country,
